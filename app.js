@@ -1,0 +1,74 @@
+const path = require('path');
+require('dotenv').config();
+
+const express = require('express');
+const bodyParser = require('body-parser');
+const multer = require('multer');
+const mongoose = require('mongoose');
+
+const feedRoutes = require('./routes/feed');
+const authRoutes = require('./routes/auth');
+
+const app = express();
+
+const fileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'images');
+    },
+    filename: (req, file, cb) => {
+        cb(null, new Date().toISOString().replace(/:/g, '-') + '-' + file.originalname);
+    }
+})
+
+const fileFilter = (req, file, cb) => {
+    if (
+        file.mimetype === 'iamge/png' ||
+        file.mimetype === 'image.jpg' ||
+        file.mimetype === 'image/jpeg' ||
+        file.mimetype === 'application/pdf'
+    ) {
+        cb(null, true);
+    } else {
+        cb(null, false);
+    }
+}
+
+app.use(bodyParser.json());
+app.use(
+    multer({
+        storage: fileStorage,
+        fileFilter: fileFilter
+    })
+    .single('image')
+)
+
+app.use('/images', express.static(path.join(__dirname, 'images')));
+
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader(
+        'Access-Control-Allow-Methods',
+        'OPTIONS, GET, POST, PUT, PATCH, DELETE'
+    );
+    res.setHeader(
+        'Access-Control-Allow-Headers',
+        'Content-Type, Authorization'
+    );
+    next();
+});
+
+app.use('/feed', feedRoutes);
+app.use('/auth', authRoutes);
+
+mongoose
+  .connect(
+      process.env.MONGODBCONNECTIONSTR,
+      {
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+          useFindAndModify: false
+      })
+    .then(result => {
+        const server = app.listen(3000);
+    })
+    .catch(err => console.log(err));
