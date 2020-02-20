@@ -14,12 +14,14 @@ exports.signup = (req, res, next) => {
         throw error;
     }
     const email = req.body.email;
+    const username = req.body.username;
     const password = req.body.password;
     bcrypt
       .hash(password, 10)
       .then(hashedPw => {
         const user = new User({
             email: email,
+            username: username,
             password: hashedPw
         });
         return user.save()
@@ -31,6 +33,7 @@ exports.signup = (req, res, next) => {
 }
 
 exports.login = async (req, res, next) => {
+    console.log(req.body)
     const email = req.body.email;
     const password = req.body.password;
     let loadedUser;
@@ -54,4 +57,6 @@ exports.login = async (req, res, next) => {
     process.env.JWTSECRETTOKEN,
     { expiresIn: '1h'}
     );
+    console.log({token: token, userId: loadedUser._id.toString() })
+    return res.status(200).json({token: token, userId: loadedUser._id.toString() })
 }

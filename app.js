@@ -54,6 +54,14 @@ app.use((req, res, next) => {
         'Access-Control-Allow-Headers',
         'Content-Type, Authorization'
     );
+    res.setHeader('Content-Type', 'application/json');
+    res.header('Access-Control-Allow-Credentials', true);
+
+    if (req.method === 'OPTIONS') {
+        // make sure that OPTIONS request doesn't go to the graphQL's endpoint
+        // while we can handle it gracefully
+        return res.sendStatus(200);
+    }
     next();
 });
 
@@ -61,10 +69,11 @@ app.use('/feed', feedRoutes);
 app.use('/auth', authRoutes);
 
 app.use((error, req, res, next) => {
-    console.log(error);
+    console.log(error.data);
     const status = error.statusCode || 500;
-    const message = error.message;
-    res.status(status).json({ message: message, data: data });
+    const message = error.data[0].msg;
+
+    res.status(status).json({ message: message });
 })
 
 mongoose
@@ -76,6 +85,6 @@ mongoose
           useFindAndModify: false
       })
     .then(result => {
-        const server = app.listen(3000);
+        app.listen(3000);
     })
     .catch(err => console.log(err));

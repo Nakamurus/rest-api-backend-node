@@ -32,19 +32,20 @@ exports.getPosts = async (req, res, next) => {
 }
 
 exports.createPost = async (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        const error = new Error('Validation failed, entered data is incorrect');
-        error.statusCode = 422;
-        throw error;
-    }
+    console.log(req)
+    // const errors = validationResult(req);
+    // if (!errors.isEmpty()) {
+    //     const error = new Error('Validation failed, entered data is incorrect');
+    //     error.statusCode = 422;
+    //     throw error;
+    // }
     const title = req.body.title;
     const content = req.body.content;
     let creator;
     const post = new Post({
         title: title,
         content: content,
-        creator: req.userId
+        // creator: req.userId
     });
     try {
         post.save()
