@@ -23,8 +23,12 @@ router.post('/signup',
         .trim()
         .isLength({ min: 5 })
   ],
-  authController.signup)
+  authController.signup);
 
-router.post('/login', authController.login)
+router.post('/login', authController.login);
+
+router.get('/users', authController.getUsers);
+
+router.get('/users/:id', authController.getUser)
 
 module.exports = router;

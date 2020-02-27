@@ -60,3 +60,63 @@ exports.login = async (req, res, next) => {
     console.log({token: token, userId: loadedUser._id.toString() })
     return res.status(200).json({token: token, userId: loadedUser._id.toString() })
 }
+
+exports.getUsers = async (req, res, next) => {
+    const currentPage = req.query.page || 1;
+    console.log(currentPage)
+    const perPage = 2;
+    let totalUsers;
+    try {
+        const totalUsers = await User.find().countDocuments()
+        const users = await User
+          .find()
+          .skip((currentPage - 1) * perPage)
+          .limit(perPage);
+        res.status(200).json(
+            {
+                message: "fetched users successfuly",
+                users: users,
+                totalItems: totalUsers,
+                currentPage: currentPage
+            }
+        )
+        console.log(users)
+    } catch (error) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err)
+    }
+}
+
+exports.getUser = async (req, res, next) => {
+    const userId = req.params.id;
+    console.log(userId)
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            res.send({ message: `There's not a user with this userId` })
+        }
+        const email = user.email;
+        const username = user.username;
+        console.log(user)
+        res.status(200).json({ email: email, username: username })
+    } catch (error) {
+        next(error)
+    }
+}
+
+exports.deleteUser = async (req, res, next) => {
+    const userId = req.body.id;
+    try {
+        const user = User.findById(userId);
+        if(user._id.toString() !== userId) {
+            const error = new Error('Not authorized');
+            error.statusCode = 403;
+            throw error;
+        }
+        User.findByIdAndRemove(userId)
+    } catch (error) {
+        next(error);
+    }
+}
